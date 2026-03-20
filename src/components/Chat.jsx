@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase, signInAnonymously } from '../supabase.js';
-import { supabase } from '../supabase.js';
 import Message from './Message.jsx';
 import Input from './Input.jsx';
 
@@ -26,6 +25,8 @@ export default function Chat({ onUsersUpdate }) {
     let mounted = true;
 
     async function init() {
+      await signInAnonymously();
+
       const { data } = await supabase
         .from('messages')
         .select('*')
