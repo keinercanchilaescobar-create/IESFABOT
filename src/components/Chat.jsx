@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { supabase, signInAnonymously } from '../supabase.js';
 import { supabase } from '../supabase.js';
 import Message from './Message.jsx';
 import Input from './Input.jsx';
