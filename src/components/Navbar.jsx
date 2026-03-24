@@ -9,7 +9,7 @@ export default function Navbar({ onMenuClick, onlineCount, onLogout, username })
 
       <div className="navbar-center">
         <img src={logo} alt="logo" className="navbar-logo" />
-        <h1 className="navbar-title">🤖🤖IESFABOT CHAT🤖🤖</h1>
+        <h1 className="navbar-title">IESFABOT CHAT</h1>
       </div>
 
       <div className="online-badge">
