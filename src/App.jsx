@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase.js';
 import Navbar from './components/Navbar.jsx';
 import Chat   from './components/Chat.jsx';
@@ -35,6 +35,8 @@ export default function App() {
     setUsername(null);
   };
 
+  const handleUsersUpdate = useCallback((u, c) => setOnlineCount(c), []);
+
   if (loading) {
     return (
       <div className="loading-screen">
@@ -61,7 +63,7 @@ export default function App() {
       <div className="main-layout">
         <Chat
           username={username}
-          onUsersUpdate={(u, c) => setOnlineCount(c)}
+          onUsersUpdate={handleUsersUpdate}
         />
       </div>
     </div>

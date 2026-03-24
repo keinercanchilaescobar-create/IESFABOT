@@ -12,10 +12,15 @@ export default function Chat({ onUsersUpdate, username }) {
   const channelsRef     = useRef([]);
   const isAtBottom      = useRef(true);
   const messagesAreaRef = useRef(null);
+  const onUsersUpdateRef = useRef(onUsersUpdate);
 
   useEffect(() => {
     usernameRef.current = username;
   }, [username]);
+
+  useEffect(() => {
+    onUsersUpdateRef.current = onUsersUpdate;
+  }, [onUsersUpdate]);
 
   useEffect(() => {
     let mounted = true;
@@ -39,7 +44,6 @@ export default function Chat({ onUsersUpdate, username }) {
           { event: 'INSERT', schema: 'public', table: 'messages' },
           (payload) => {
             if (!mounted) return;
-
             setMessages(prev => {
               if (prev.find(m => m.id === payload.new.id)) return prev;
               return [...prev, payload.new];
@@ -50,54 +54,28 @@ export default function Chat({ onUsersUpdate, username }) {
           if (mounted) setConnected(status === 'SUBSCRIBED');
         });
 
-     const presenceChannel = supabase.channel('chat-presence');
+      const presenceChannel = supabase.channel('chat-presence');
 
-    presenceChannel
-        .on('presence', { event: 'sync' }, () => {
-          if (!mounted) return;
-
-          const state = presenceChannel.presenceState();
-          const users = [];
-
-          Object.values(state).forEach(presences => {
-            presences.forEach(p => {
-              if (p.username && !users.includes(p.username)) {
-                users.push(p.username);
-              }
-            });
+      const updateUsers = () => {
+        if (!mounted) return;
+        const state = presenceChannel.presenceState();
+        const users = [];
+        Object.values(state).forEach(presences => {
+          presences.forEach(p => {
+            if (p.username && !users.includes(p.username)) {
+              users.push(p.username);
+            }
           });
+        });
+        onUsersUpdateRef.current(users, users.length);
+      };
 
-          onUsersUpdate(users, users.length);
-        })
-        .on('presence', { event: 'join' }, ({ newPresences }) => {
-          if (!mounted) return;
-          const state = presenceChannel.presenceState();
-          const users = [];
-          Object.values(state).forEach(presences => {
-            presences.forEach(p => {
-              if (p.username && !users.includes(p.username)) {
-                users.push(p.username);
-              }
-            });
-          });
-          onUsersUpdate(users, users.length);
-        })
-        .on('presence', { event: 'leave' }, () => {
-          if (!mounted) return;
-          const state = presenceChannel.presenceState();
-          const users = [];
-          Object.values(state).forEach(presences => {
-            presences.forEach(p => {
-              if (p.username && !users.includes(p.username)) {
-                users.push(p.username);
-              }
-            });
-          });
-          onUsersUpdate(users, users.length);
-        })
+      presenceChannel
+        .on('presence', { event: 'sync' },  updateUsers)
+        .on('presence', { event: 'join' },  updateUsers)
+        .on('presence', { event: 'leave' }, updateUsers)
         .subscribe(async (status) => {
           if (!mounted) return;
-           console.log('Presence status:', status); // 👈 agrega esta línea
 
           if (status === 'SUBSCRIBED') {
             await presenceChannel.track({
@@ -117,9 +95,10 @@ export default function Chat({ onUsersUpdate, username }) {
               } catch (err) {
                 console.error('Error re-track:', err);
               }
-            }, 2000); // espera 2 segundos antes de reintentar
+            }, 2000);
           }
         });
+
       channelsRef.current = [msgChannel, presenceChannel];
     }
 
@@ -129,7 +108,7 @@ export default function Chat({ onUsersUpdate, username }) {
       mounted = false;
       channelsRef.current.forEach(ch => ch.unsubscribe());
     };
-  }, [onUsersUpdate, username]);
+  }, []); // ✅ array vacío — el efecto corre solo una vez
 
   // 🔽 Auto-scroll
   useEffect(() => {
@@ -196,13 +175,11 @@ export default function Chat({ onUsersUpdate, username }) {
             {username?.[0]?.toUpperCase() || '?'}
           </span>
           {username}
-        </span>  
+        </span>
 
-         {/* 🗑️ NUEVO BOTÓN */}
         <button className="clear-btn" onClick={clearHistory}>
           🗑️ Borrar historial
         </button>
-
       </div>
 
       <div className="messages-area" ref={messagesAreaRef}>
@@ -222,10 +199,9 @@ export default function Chat({ onUsersUpdate, username }) {
         ))}
 
         <div ref={bottomRef} />
-        
       </div>
 
       <Input onSend={sendMessage} />
     </div>
   );
-} 
+}
