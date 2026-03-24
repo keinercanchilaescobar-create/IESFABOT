@@ -50,14 +50,7 @@ export default function Chat({ onUsersUpdate, username }) {
           if (mounted) setConnected(status === 'SUBSCRIBED');
         });
 
-      // 👥 PRESENCE (CORREGIDO)
-      const presenceChannel = supabase.channel('chat-presence', {
-        config: {
-          presence: {
-            key: usernameRef.current,
-          },
-        },
-      });
+     const presenceChannel = supabase.channel('chat-presence');
 
       presenceChannel
         .on('presence', { event: 'sync' }, () => {
