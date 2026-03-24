@@ -1,5 +1,7 @@
 import React, { useRef, useState } from 'react';
-import { supabase } from '../supabase.js';
+
+const CLOUD_NAME   = 'dnutlh8dn';
+const UPLOAD_PRESET = 'iesfabot_uploads';
 
 export default function Input({ onSend }) {
   const [text,      setText]      = useState('');
@@ -23,28 +25,32 @@ export default function Input({ onSend }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Límite 10 MB
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Archivo demasiado grande. Máximo 10 MB.');
+    // Límite 50 MB (Cloudinary soporta mucho más que Supabase)
+    if (file.size > 50 * 1024 * 1024) {
+      alert('Archivo demasiado grande. Máximo 50 MB.');
       e.target.value = '';
       return;
     }
 
     setUploading(true);
     try {
-      const path = `${Date.now()}-${file.name}`;
-      const { error: upErr } = await supabase.storage
-        .from('chat-files')
-        .upload(path, file, { contentType: file.type, upsert: false });
+      // Subir directamente a Cloudinary sin backend
+      const formData = new FormData();
+      formData.append('file',           file);
+      formData.append('upload_preset',  UPLOAD_PRESET);
+      formData.append('public_id',      `${Date.now()}-${file.name}`);
 
-      if (upErr) throw upErr;
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,
+        { method: 'POST', body: formData }
+      );
 
-      const { data } = supabase.storage
-        .from('chat-files')
-        .getPublicUrl(path);
+      if (!response.ok) throw new Error('Error al subir a Cloudinary');
+
+      const data = await response.json();
 
       onSend('', {
-        url:  data.publicUrl,
+        url:  data.secure_url,
         name: file.name,
         type: file.type,
       });
