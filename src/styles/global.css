@@ -1,138 +1,121 @@
-/* ===============================
-   RESET Y VARIABLES
-=================================*/
-*, *::before, *::after {
+/* =========================================================
+   RESET GLOBAL (React root)
+=========================================================*/
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-:root {
-  --color-bg-main: #0a0f14;
-  --color-bg-secondary: #111821;
-  --color-bg-tertiary: #161f2b;
-
-  --color-primary: #00ff9c;
-  --color-primary-dim: #00c97a;
-
-  --color-text-main: #e6fff4;
-  --color-text-muted: #7f9c8f;
-
-  --color-danger: #ff4c4c;
-
-  --border: 1px solid #00ff9c22;
-  --radius: 10px;
-  --font-main: 'Fira Code', monospace;
-}
-
-/* ===============================
-   BASE
-=================================*/
-html, body, #root {
-  height: 100%;
+#root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 body {
-  font-family: var(--font-main);
-  background: var(--color-bg-main);
-  color: var(--color-text-main);
+  background: #050b12;
+  font-family: 'Fira Code', monospace;
   overflow: hidden;
 }
 
-/* ===============================
-   SCROLLBAR
-=================================*/
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-bg-secondary);
+/* =========================================================
+   VARIABLES
+=========================================================*/
+:root {
+  --neon: #00ff88;
+  --neon-soft: #00ff8833;
+
+  --bg-main: #050b12;
+  --bg-secondary: #0d1117;
+  --bg-tertiary: #111821;
+
+  --text-main: #e6fff4;
+  --text-dim: #7a9c8b;
+
+  --danger: #ff4c4c;
+  --radius: 12px;
+  --border: 1px solid #00ff8822;
 }
 
-/* ===============================
-   LAYOUT
-=================================*/
+/* =========================================================
+   APP CONTAINER
+=========================================================*/
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
 }
 
-.main-layout {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* ===============================
+/* =========================================================
    NAVBAR
-=================================*/
+=========================================================*/
 .navbar {
   height: 64px;
+  background: var(--bg-secondary);
   display: flex;
   align-items: center;
   padding: 0 20px;
-  background: var(--color-bg-secondary);
-  border-bottom: 2px solid var(--color-primary);
-  box-shadow: 0 0 20px #00ff9c33;
+  border-bottom: 2px solid var(--neon);
+  box-shadow: 0 0 15px var(--neon-soft);
+  z-index: 10;
 }
 
 .navbar-title {
   flex: 1;
   text-align: center;
-  font-size: 1.5rem;
+  color: var(--neon);
+  font-size: 1.4rem;
   letter-spacing: 2px;
-  color: var(--color-primary);
-  text-shadow: 0 0 8px var(--color-primary);
+  text-shadow: 0 0 6px var(--neon);
 }
 
 .hamburger {
   background: transparent;
   border: var(--border);
-  color: var(--color-primary);
+  color: var(--neon);
   padding: 6px 10px;
   border-radius: var(--radius);
   cursor: pointer;
-  transition: .2s;
 }
 
-.hamburger:hover {
-  background: var(--color-primary);
-  color: #000;
+.online-badge {
+  font-size: 0.8rem;
+  color: var(--neon);
 }
 
-/* ===============================
+/* =========================================================
+   MAIN LAYOUT
+=========================================================*/
+.main-layout {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* =========================================================
    SIDEBAR
-=================================*/
+=========================================================*/
 .sidebar {
   width: 260px;
-  background: var(--color-bg-secondary);
+  background: var(--bg-secondary);
   border-right: var(--border);
   display: flex;
   flex-direction: column;
-  position: fixed;
-  top: 64px;
-  bottom: 0;
-  left: 0;
-  transform: translateX(-100%);
-  transition: .3s ease;
-  z-index: 100;
+  transition: transform .3s ease;
 }
 
-.sidebar.open {
-  transform: translateX(0);
+.sidebar.closed {
+  transform: translateX(-100%);
 }
 
 .sidebar-header {
   padding: 16px;
-  font-size: .8rem;
-  letter-spacing: 1px;
-  color: var(--color-primary);
   border-bottom: var(--border);
+  color: var(--neon);
+  font-size: .8rem;
 }
 
 .user-list {
@@ -142,40 +125,57 @@ body {
 }
 
 .user-item {
-  padding: 8px 10px;
+  padding: 8px;
   border-radius: var(--radius);
-  font-size: .85rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: .2s;
+  cursor: pointer;
 }
 
 .user-item:hover {
-  background: #00ff9c11;
+  background: #00ff8811;
 }
 
-/* ===============================
+/* =========================================================
    CHAT
-=================================*/
+=========================================================*/
 .chat-container {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
+/* =========================================================
+   STATUS BAR
+=========================================================*/
+.status-bar {
+  background: var(--bg-tertiary);
+  padding: 6px 12px;
+  font-size: .75rem;
+  border-bottom: var(--border);
+  color: var(--text-dim);
+}
+
+/* =========================================================
+   MESSAGES
+=========================================================*/
 .messages-area {
   flex: 1;
-  padding: 16px;
   overflow-y: auto;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* ===============================
-   MENSAJES
-=================================*/
+/* Logo dentro del chat */
+.messages-area img {
+  max-height: 180px;
+  margin: 0 auto;
+}
+
+/* =========================================================
+   MESSAGE BUBBLES
+=========================================================*/
 .message-wrapper {
   display: flex;
 }
@@ -188,43 +188,41 @@ body {
   max-width: 70%;
   padding: 10px 14px;
   border-radius: 16px;
-  background: var(--color-bg-tertiary);
+  background: var(--bg-tertiary);
   border: var(--border);
-  animation: fadeIn .3s ease;
 }
 
 .message-wrapper.own .message-bubble {
-  background: #00ff9c11;
-  border-color: var(--color-primary);
+  background: #00ff8811;
+  border-color: var(--neon);
 }
 
 .msg-username {
   font-size: .7rem;
-  color: var(--color-primary);
+  color: var(--neon);
   margin-bottom: 4px;
 }
 
 .msg-text {
-  font-size: .9rem;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .msg-time {
-  text-align: right;
   font-size: .65rem;
-  color: var(--color-text-muted);
+  color: var(--text-dim);
+  text-align: right;
   margin-top: 4px;
 }
 
-/* ===============================
+/* =========================================================
    INPUT
-=================================*/
+=========================================================*/
 .input-area {
   display: flex;
   gap: 10px;
-  padding: 12px 16px;
-  background: var(--color-bg-secondary);
-  border-top: 2px solid var(--color-primary);
+  padding: 12px;
+  background: var(--bg-secondary);
+  border-top: 2px solid var(--neon);
 }
 
 .text-input {
@@ -232,53 +230,42 @@ body {
   padding: 12px 16px;
   border-radius: 25px;
   border: var(--border);
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-main);
+  background: var(--bg-tertiary);
+  color: var(--text-main);
   outline: none;
 }
 
-.text-input:focus {
-  box-shadow: 0 0 8px var(--color-primary);
-}
-
-.attach-btn,
-.send-btn {
+.send-btn,
+.attach-btn {
   width: 42px;
   height: 42px;
   border-radius: 50%;
   cursor: pointer;
-  transition: .2s;
-}
-
-.attach-btn {
-  border: var(--border);
-  background: transparent;
-  color: var(--color-primary);
 }
 
 .send-btn {
+  background: var(--neon);
   border: none;
-  background: var(--color-primary);
-  color: #000;
 }
 
-.send-btn:hover,
-.attach-btn:hover {
-  transform: scale(1.1);
+.attach-btn {
+  background: transparent;
+  border: var(--border);
+  color: var(--neon);
 }
 
-/* ===============================
+/* =========================================================
    LOGIN
-=================================*/
+=========================================================*/
 .login-container {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
 }
 
 .login-box {
-  background: var(--color-bg-secondary);
+  background: var(--bg-secondary);
   padding: 40px;
   border-radius: var(--radius);
   border: var(--border);
@@ -287,7 +274,7 @@ body {
 
 .login-title {
   text-align: center;
-  color: var(--color-primary);
+  color: var(--neon);
   margin-bottom: 20px;
 }
 
@@ -295,23 +282,15 @@ body {
   width: 100%;
   padding: 10px;
   margin-bottom: 10px;
-  background: var(--color-bg-tertiary);
+  background: var(--bg-tertiary);
   border: var(--border);
-  color: var(--color-text-main);
+  color: white;
 }
 
 .login-btn {
   width: 100%;
   padding: 10px;
-  background: var(--color-primary);
+  background: var(--neon);
   border: none;
   cursor: pointer;
-}
-
-/* ===============================
-   ANIMACIONES
-=================================*/
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
 }
