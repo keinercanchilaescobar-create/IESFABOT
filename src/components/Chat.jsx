@@ -13,9 +13,6 @@ export default function Chat({ onUsersUpdate, username }) {
   const isAtBottom      = useRef(true);
   const messagesAreaRef = useRef(null);
 
-  // 🔹 NUEVO: referencia para el interval
-  const intervalRef = useRef(null);
-
   useEffect(() => {
     usernameRef.current = username;
   }, [username]);
@@ -24,7 +21,7 @@ export default function Chat({ onUsersUpdate, username }) {
     let mounted = true;
 
     async function init() {
-      // Historial
+      // 📥 Cargar historial
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -34,7 +31,7 @@ export default function Chat({ onUsersUpdate, username }) {
       if (error) console.error('Error cargando mensajes:', error);
       if (mounted) setMessages(data || []);
 
-      // Canal mensajes
+      // 💬 Canal de mensajes
       const msgChannel = supabase
         .channel('chat-messages')
         .on(
@@ -42,6 +39,7 @@ export default function Chat({ onUsersUpdate, username }) {
           { event: 'INSERT', schema: 'public', table: 'messages' },
           (payload) => {
             if (!mounted) return;
+
             setMessages(prev => {
               if (prev.find(m => m.id === payload.new.id)) return prev;
               return [...prev, payload.new];
@@ -52,7 +50,7 @@ export default function Chat({ onUsersUpdate, username }) {
           if (mounted) setConnected(status === 'SUBSCRIBED');
         });
 
-      // 🔥 PRESENCE CORREGIDO
+      // 👥 PRESENCE (CORREGIDO)
       const presenceChannel = supabase.channel('chat-presence', {
         config: {
           presence: {
@@ -66,32 +64,41 @@ export default function Chat({ onUsersUpdate, username }) {
           if (!mounted) return;
 
           const state = presenceChannel.presenceState();
+          const users = [];
 
-          // 🔥 evitar duplicados
-          const users = [...new Set(
-            Object.values(state)
-              .flat()
-              .map(u => u.username)
-              .filter(Boolean)
-          )];
+          Object.values(state).forEach(presences => {
+            presences.forEach(p => {
+              if (p.username && !users.includes(p.username)) {
+                users.push(p.username);
+              }
+            });
+          });
 
           onUsersUpdate(users, users.length);
         })
         .subscribe(async (status) => {
-          if (status === 'SUBSCRIBED' && mounted) {
+          if (!mounted) return;
+
+          // ✅ conexión inicial
+          if (status === 'SUBSCRIBED') {
             await presenceChannel.track({
               username: usernameRef.current,
               online_at: new Date().toISOString(),
-              status: 'online',
             });
+          }
 
-            // 🔥 keep-alive (solución al problema)
-            intervalRef.current = setInterval(() => {
-              presenceChannel.track({
+          // 🔥 RECONEXIÓN (CLAVE)
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            try {
+              await presenceChannel.untrack();
+
+              await presenceChannel.track({
                 username: usernameRef.current,
                 online_at: new Date().toISOString(),
               });
-            }, 15000);
+            } catch (err) {
+              console.error('Error re-track:', err);
+            }
           }
         });
 
@@ -103,22 +110,17 @@ export default function Chat({ onUsersUpdate, username }) {
     return () => {
       mounted = false;
       channelsRef.current.forEach(ch => ch.unsubscribe());
-
-      // 🔥 limpiar interval
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
     };
-  }, [onUsersUpdate]);
+  }, [onUsersUpdate, username]);
 
-  // Auto-scroll
+  // 🔽 Auto-scroll
   useEffect(() => {
     if (isAtBottom.current) {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
-  // Detectar scroll
+  // 🔽 Detectar scroll manual
   useEffect(() => {
     const area = messagesAreaRef.current;
     if (!area) return;
