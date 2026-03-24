@@ -1,42 +1,38 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { supabase, signInAnonymously } from '../supabase.js';
+import { supabase } from '../supabase.js';
 import Message from './Message.jsx';
-import Input from './Input.jsx';
+import Input   from './Input.jsx';
 
-function getUsername() {
-  const key = 'iesfabot_username';
-  let name = sessionStorage.getItem(key);
-  if (!name) {
-    name = `User_${Math.floor(Math.random() * 9999)}`;
-    sessionStorage.setItem(key, name);
-  }
-  return name;
-}
-
-export default function Chat({ onUsersUpdate, username: propUsername }) {
+export default function Chat({ onUsersUpdate, username }) {
   const [messages,  setMessages]  = useState([]);
   const [connected, setConnected] = useState(false);
-  const [username, setUsername] = useState(propUsername);
-  const usernameRef = useRef(propUsername);
+
+  const usernameRef     = useRef(username);
   const bottomRef       = useRef(null);
   const channelsRef     = useRef([]);
   const isAtBottom      = useRef(true);
   const messagesAreaRef = useRef(null);
 
+  // Actualizar ref si el username cambia
+  useEffect(() => {
+    usernameRef.current = username;
+  }, [username]);
+
   useEffect(() => {
     let mounted = true;
 
     async function init() {
-      await signInAnonymously();
-
-      const { data } = await supabase
+      // Cargar historial
+      const { data, error } = await supabase
         .from('messages')
         .select('*')
         .order('created_at', { ascending: true })
         .limit(60);
 
+      if (error) console.error('Error cargando mensajes:', error);
       if (mounted) setMessages(data || []);
 
+      // Canal de mensajes en tiempo real
       const msgChannel = supabase
         .channel('chat-messages')
         .on(
@@ -54,6 +50,7 @@ export default function Chat({ onUsersUpdate, username: propUsername }) {
           if (mounted) setConnected(status === 'SUBSCRIBED');
         });
 
+      // Canal de presencia (usuarios online)
       const presenceChannel = supabase.channel('chat-presence');
       presenceChannel
         .on('presence', { event: 'sync' }, () => {
@@ -82,12 +79,14 @@ export default function Chat({ onUsersUpdate, username: propUsername }) {
     };
   }, [onUsersUpdate]);
 
+  // Auto-scroll al último mensaje
   useEffect(() => {
     if (isAtBottom.current) {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
+  // Detectar si el usuario está al fondo
   useEffect(() => {
     const area = messagesAreaRef.current;
     if (!area) return;
@@ -100,37 +99,49 @@ export default function Chat({ onUsersUpdate, username: propUsername }) {
   }, []);
 
   const sendMessage = async (text, file) => {
-    await supabase.from('messages').insert({
+    if (!text?.trim() && !file) return;
+    const { error } = await supabase.from('messages').insert({
       username:  usernameRef.current,
       text:      text || '',
       file_url:  file?.url   || null,
       file_name: file?.name  || null,
       file_type: file?.type  || null,
     });
-  };
-
-  const rename = () => {
-    const n = prompt('Nuevo nombre de usuario:', usernameRef.current);
-    if (!n?.trim()) return;
-    usernameRef.current = n.trim();
-    setUsername(n.trim());
-    sessionStorage.setItem('iesfabot_username', n.trim());
+    if (error) console.error('Error enviando mensaje:', error);
   };
 
   return (
     <div className="chat-container">
       <div className="status-bar">
         <span className={`status-dot ${connected ? 'connected' : 'disconnected'}`} />
-        {connected ? 'Conectado a Supabase' : 'Conectando...'}
-        <span className="username-display">&nbsp;| 👤 {username}</span>
-        <button className="rename-btn" onClick={rename} title="Cambiar nombre">✏️</button>
+        <span className="status-text">
+          {connected ? 'Conectado' : 'Conectando...'}
+        </span>
+        <span className="username-chip">
+          <span className="username-avatar">
+            {username?.[0]?.toUpperCase() || '?'}
+          </span>
+          {username}
+        </span>
       </div>
+
       <div className="messages-area" ref={messagesAreaRef}>
+        {messages.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-icon">💬</div>
+            <p>No hay mensajes aún.<br />¡Sé el primero en escribir!</p>
+          </div>
+        )}
         {messages.map(msg => (
-          <Message key={msg.id} msg={msg} own={msg.username === usernameRef.current} />
+          <Message
+            key={msg.id}
+            msg={msg}
+            own={msg.username === usernameRef.current}
+          />
         ))}
         <div ref={bottomRef} />
       </div>
+
       <Input onSend={sendMessage} />
     </div>
   );
