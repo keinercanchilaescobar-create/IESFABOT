@@ -47,10 +47,10 @@ export default function App() {
           <div className="loading-logo">🤖</div>
           <div className="loading-text">IESFABOT</div>
           <div className="loading-dots">
-            <span /><span /><span />
+            <span />anyan <span />
           </div>
         </div>
-      </div>s
+      </div>
     );
   }
 
