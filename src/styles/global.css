@@ -359,3 +359,39 @@ body {
   background: #1a2233;
   color: #e2eaf5;
 }
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.login-box {
+  background: #0d1117;
+  padding: 40px;
+  border-radius: 12px;
+  border: 1px solid #1e2a3a;
+}
+
+.login-title {
+  color: #00d4ff;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #080b10;
+  border: 1px solid #1e2a3a;
+  color: white;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 10px;
+  background: #00d4ff;
+  border: none;
+  cursor: pointer;
+}
