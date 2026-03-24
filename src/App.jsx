@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase.js';
-import Navbar from './components/Navbar.jsx';
-import Chat   from './components/Chat.jsx';
-import Login  from './components/Login.jsx';
+import Navbar  from './components/Navbar.jsx';
+import Sidebar from './components/Sidebar.jsx';
+import Chat    from './components/Chat.jsx';
+import Login   from './components/Login.jsx';
 
 export default function App() {
   const [onlineCount, setOnlineCount] = useState(0);
+  const [users, setUsers]             = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [username, setUsername]       = useState(null);
   const [loading, setLoading]         = useState(true);
 
@@ -35,7 +38,11 @@ export default function App() {
     setUsername(null);
   };
 
-  const handleUsersUpdate = useCallback((u, c) => setOnlineCount(c), []);
+  // ✅ Ahora guarda tanto usuarios como conteo
+  const handleUsersUpdate = useCallback((u, c) => {
+    setUsers(u);
+    setOnlineCount(c);
+  }, []);
 
   if (loading) {
     return (
@@ -56,11 +63,17 @@ export default function App() {
   return (
     <div className="app-container">
       <Navbar
+        onMenuClick={() => setSidebarOpen(o => !o)}
         onlineCount={onlineCount}
         onLogout={handleLogout}
         username={username}
       />
       <div className="main-layout">
+        <Sidebar
+          open={sidebarOpen}
+          users={users}
+          onClose={() => setSidebarOpen(false)}
+        />
         <Chat
           username={username}
           onUsersUpdate={handleUsersUpdate}
