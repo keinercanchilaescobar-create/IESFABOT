@@ -1010,3 +1010,47 @@ html, body, #root {
   .sidebar { position: absolute; left: 0; top: 0; height: 100%; z-index: 200; width: 240px; }
   .sidebar.closed { transform: translateX(-100%); width: 240px; }
 }
+.input-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-top: 1px solid #00ffcc33;
+  background: #0a0f1c;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 12px 15px;
+  border-radius: 25px;
+  border: 1px solid #00ffcc55;
+  background: #0f172a;
+  color: #00ffcc;
+  outline: none;
+  font-size: 14px;
+}
+
+.chat-input::placeholder {
+  color: #00ffcc88;
+}
+
+.chat-input:focus {
+  border-color: #00ffcc;
+  box-shadow: 0 0 8px #00ffcc55;
+}
+
+.send-button {
+  background: #00ffcc;
+  color: #000;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.2s;
+}
+
+.send-button:hover {
+  background: #00e6b8;
+  transform: scale(1.1);
+}
