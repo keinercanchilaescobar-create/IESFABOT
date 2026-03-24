@@ -187,4 +187,21 @@ export default function Chat({ onUsersUpdate, username }) {
       <Input onSend={sendMessage} />
     </div>
   );
+  const clearChat = async () => {
+  const confirmDelete = confirm('¿Seguro que quieres borrar todo el chat?');
+
+  if (!confirmDelete) return;
+
+  const { error } = await supabase
+    .from('messages')
+    .delete()
+    .neq('id', 0); // borra todo
+
+  if (error) {
+    console.error('Error borrando chat:', error);
+    alert('Error al borrar el chat');
+  } else {
+    setMessages([]); // limpiar UI
+  }
+};
 }
