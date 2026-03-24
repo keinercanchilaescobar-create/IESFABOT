@@ -163,6 +163,10 @@ export default function Chat({ onUsersUpdate, username }) {
           </span>
           {username}
         </span>
+
+        {/* 🔥 BOTÓN BORRAR CHAT */}
+        <button onClick={clearChat} className="clear-btn">
+        </button>
       </div>
 
       <div className="messages-area" ref={messagesAreaRef}>
@@ -203,5 +207,6 @@ export default function Chat({ onUsersUpdate, username }) {
   } else {
     setMessages([]); // limpiar UI
   }
-};
-}
+  };
+ 
+} 
