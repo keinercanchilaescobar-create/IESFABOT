@@ -13,11 +13,11 @@ function getUsername() {
   return name;
 }
 
-export default function Chat({ onUsersUpdate }) {
+export default function Chat({ onUsersUpdate, username: propUsername }) {
   const [messages,  setMessages]  = useState([]);
   const [connected, setConnected] = useState(false);
-  const [username,  setUsername]  = useState(getUsername);
-  const usernameRef     = useRef(getUsername());
+  const [username, setUsername] = useState(propUsername);
+  const usernameRef = useRef(propUsername);
   const bottomRef       = useRef(null);
   const channelsRef     = useRef([]);
   const isAtBottom      = useRef(true);
