@@ -461,3 +461,51 @@ body {
     box-shadow: 0 0 0 rgba(0,212,255,0);
   }
 }
+/* =============================
+   NAVBAR LADO DERECHO
+=============================*/
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* =============================
+   ESTADO DE CONEXIÓN
+=============================*/
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #8fbcd4;
+}
+
+/* bombillo */
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* online */
+.status-dot.online {
+  background: #00ff88;
+  box-shadow:
+    0 0 6px #00ff88,
+    0 0 12px #00ff88;
+  animation: pulseOnline 2s infinite;
+}
+
+/* offline */
+.status-dot.offline {
+  background: #ff4c4c;
+  box-shadow: 0 0 6px #ff4c4c;
+}
+
+/* animación */
+@keyframes pulseOnline {
+  0% { box-shadow: 0 0 4px #00ff88; }
+  50% { box-shadow: 0 0 12px #00ff88; }
+  100% { box-shadow: 0 0 4px #00ff88; }
+}
