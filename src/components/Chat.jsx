@@ -13,7 +13,9 @@ export default function Chat({ onUsersUpdate, username }) {
   const isAtBottom      = useRef(true);
   const messagesAreaRef = useRef(null);
 
-  // Actualizar ref si el username cambia
+  // 🔹 NUEVO: referencia para el interval
+  const intervalRef = useRef(null);
+
   useEffect(() => {
     usernameRef.current = username;
   }, [username]);
@@ -22,7 +24,7 @@ export default function Chat({ onUsersUpdate, username }) {
     let mounted = true;
 
     async function init() {
-      // Cargar historial
+      // Historial
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -32,7 +34,7 @@ export default function Chat({ onUsersUpdate, username }) {
       if (error) console.error('Error cargando mensajes:', error);
       if (mounted) setMessages(data || []);
 
-      // Canal de mensajes en tiempo real
+      // Canal mensajes
       const msgChannel = supabase
         .channel('chat-messages')
         .on(
@@ -50,13 +52,29 @@ export default function Chat({ onUsersUpdate, username }) {
           if (mounted) setConnected(status === 'SUBSCRIBED');
         });
 
-      // Canal de presencia (usuarios online)
-      const presenceChannel = supabase.channel('chat-presence');
+      // 🔥 PRESENCE CORREGIDO
+      const presenceChannel = supabase.channel('chat-presence', {
+        config: {
+          presence: {
+            key: usernameRef.current,
+          },
+        },
+      });
+
       presenceChannel
         .on('presence', { event: 'sync' }, () => {
           if (!mounted) return;
+
           const state = presenceChannel.presenceState();
-          const users = Object.values(state).flat().map(u => u.username).filter(Boolean);
+
+          // 🔥 evitar duplicados
+          const users = [...new Set(
+            Object.values(state)
+              .flat()
+              .map(u => u.username)
+              .filter(Boolean)
+          )];
+
           onUsersUpdate(users, users.length);
         })
         .subscribe(async (status) => {
@@ -64,7 +82,16 @@ export default function Chat({ onUsersUpdate, username }) {
             await presenceChannel.track({
               username: usernameRef.current,
               online_at: new Date().toISOString(),
+              status: 'online',
             });
+
+            // 🔥 keep-alive (solución al problema)
+            intervalRef.current = setInterval(() => {
+              presenceChannel.track({
+                username: usernameRef.current,
+                online_at: new Date().toISOString(),
+              });
+            }, 15000);
           }
         });
 
@@ -76,30 +103,39 @@ export default function Chat({ onUsersUpdate, username }) {
     return () => {
       mounted = false;
       channelsRef.current.forEach(ch => ch.unsubscribe());
+
+      // 🔥 limpiar interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, [onUsersUpdate]);
 
-  // Auto-scroll al último mensaje
+  // Auto-scroll
   useEffect(() => {
     if (isAtBottom.current) {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
-  // Detectar si el usuario está al fondo
+  // Detectar scroll
   useEffect(() => {
     const area = messagesAreaRef.current;
     if (!area) return;
+
     const handleScroll = () => {
       const threshold = 100;
-      isAtBottom.current = area.scrollHeight - area.scrollTop - area.clientHeight < threshold;
+      isAtBottom.current =
+        area.scrollHeight - area.scrollTop - area.clientHeight < threshold;
     };
+
     area.addEventListener('scroll', handleScroll);
     return () => area.removeEventListener('scroll', handleScroll);
   }, []);
 
   const sendMessage = async (text, file) => {
     if (!text?.trim() && !file) return;
+
     const { error } = await supabase.from('messages').insert({
       username:  usernameRef.current,
       text:      text || '',
@@ -107,6 +143,7 @@ export default function Chat({ onUsersUpdate, username }) {
       file_name: file?.name  || null,
       file_type: file?.type  || null,
     });
+
     if (error) console.error('Error enviando mensaje:', error);
   };
 
@@ -117,6 +154,7 @@ export default function Chat({ onUsersUpdate, username }) {
         <span className="status-text">
           {connected ? 'Conectado' : 'Conectando...'}
         </span>
+
         <span className="username-chip">
           <span className="username-avatar">
             {username?.[0]?.toUpperCase() || '?'}
@@ -132,6 +170,7 @@ export default function Chat({ onUsersUpdate, username }) {
             <p>No hay mensajes aún.<br />¡Sé el primero en escribir!</p>
           </div>
         )}
+
         {messages.map(msg => (
           <Message
             key={msg.id}
@@ -139,6 +178,7 @@ export default function Chat({ onUsersUpdate, username }) {
             own={msg.username === usernameRef.current}
           />
         ))}
+
         <div ref={bottomRef} />
       </div>
 
