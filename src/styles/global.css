@@ -395,3 +395,20 @@ body {
   border: none;
   cursor: pointer;
 }
+
+.clear-btn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid #e74c3c;
+  color: #e74c3c;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.clear-btn:hover {
+  background: #e74c3c;
+  color: white;
+}

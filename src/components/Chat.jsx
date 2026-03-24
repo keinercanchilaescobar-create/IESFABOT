@@ -149,6 +149,22 @@ export default function Chat({ onUsersUpdate, username }) {
     if (error) console.error('Error enviando mensaje:', error);
   };
 
+  // 🗑️ Borrar historial
+  const clearHistory = async () => {
+    if (!window.confirm('¿Seguro que quieres borrar todo el historial? Esta acción no se puede deshacer.')) return;
+
+    const { error } = await supabase
+      .from('messages')
+      .delete()
+      .neq('id', 0);
+
+    if (error) {
+      console.error('Error borrando historial:', error);
+    } else {
+      setMessages([]);
+    }
+  };
+
   return (
     <div className="chat-container">
       <div className="status-bar">
@@ -162,7 +178,12 @@ export default function Chat({ onUsersUpdate, username }) {
             {username?.[0]?.toUpperCase() || '?'}
           </span>
           {username}
-        </span>
+        </span>  
+
+         {/* 🗑️ NUEVO BOTÓN */}
+        <button className="clear-btn" onClick={clearHistory}>
+          🗑️ Borrar historial
+        </button>
         
       </div>
 
@@ -183,27 +204,10 @@ export default function Chat({ onUsersUpdate, username }) {
         ))}
 
         <div ref={bottomRef} />
+        
       </div>
 
       <Input onSend={sendMessage} />
     </div>
   );
-  const clearChat = async () => {
-  const confirmDelete = confirm('¿Seguro que quieres borrar todo el chat?');
-
-  if (!confirmDelete) return;
-
-  const { error } = await supabase
-    .from('messages')
-    .delete()
-    .neq('id', 0); // borra todo
-
-  if (error) {
-    console.error('Error borrando chat:', error);
-    alert('Error al borrar el chat');
-  } else {
-    setMessages([]); // limpiar UI
-  }
-  };
- 
 } 
