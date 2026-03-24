@@ -17,9 +17,11 @@ export default function Chat({ onUsersUpdate }) {
   const [messages,  setMessages]  = useState([]);
   const [connected, setConnected] = useState(false);
   const [username,  setUsername]  = useState(getUsername);
-  const usernameRef  = useRef(getUsername());
-  const bottomRef    = useRef(null);
-  const channelsRef  = useRef([]);
+  const usernameRef     = useRef(getUsername());
+  const bottomRef       = useRef(null);
+  const channelsRef     = useRef([]);
+  const isAtBottom      = useRef(true);
+  const messagesAreaRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
@@ -81,8 +83,21 @@ export default function Chat({ onUsersUpdate }) {
   }, [onUsersUpdate]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isAtBottom.current) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
+
+  useEffect(() => {
+    const area = messagesAreaRef.current;
+    if (!area) return;
+    const handleScroll = () => {
+      const threshold = 100;
+      isAtBottom.current = area.scrollHeight - area.scrollTop - area.clientHeight < threshold;
+    };
+    area.addEventListener('scroll', handleScroll);
+    return () => area.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const sendMessage = async (text, file) => {
     await supabase.from('messages').insert({
@@ -110,7 +125,7 @@ export default function Chat({ onUsersUpdate }) {
         <span className="username-display">&nbsp;| 👤 {username}</span>
         <button className="rename-btn" onClick={rename} title="Cambiar nombre">✏️</button>
       </div>
-      <div className="messages-area">
+      <div className="messages-area" ref={messagesAreaRef}>
         {messages.map(msg => (
           <Message key={msg.id} msg={msg} own={msg.username === usernameRef.current} />
         ))}
