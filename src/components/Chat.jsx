@@ -156,7 +156,7 @@ export default function Chat({ onUsersUpdate, username }) {
     const { error } = await supabase
       .from('messages')
       .delete()
-      .neq('id', 0);
+      .gte('created_at', '2000-01-01');
 
     if (error) {
       console.error('Error borrando historial:', error);
@@ -184,7 +184,7 @@ export default function Chat({ onUsersUpdate, username }) {
         <button className="clear-btn" onClick={clearHistory}>
           🗑️ Borrar historial
         </button>
-        
+
       </div>
 
       <div className="messages-area" ref={messagesAreaRef}>
