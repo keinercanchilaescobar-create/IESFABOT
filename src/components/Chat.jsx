@@ -97,6 +97,7 @@ export default function Chat({ onUsersUpdate, username }) {
         })
         .subscribe(async (status) => {
           if (!mounted) return;
+           console.log('Presence status:', status); // 👈 agrega esta línea
 
           if (status === 'SUBSCRIBED') {
             await presenceChannel.track({
