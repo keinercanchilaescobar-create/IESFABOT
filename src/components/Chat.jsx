@@ -52,7 +52,7 @@ export default function Chat({ onUsersUpdate, username }) {
 
      const presenceChannel = supabase.channel('chat-presence');
 
-      presenceChannel
+    presenceChannel
         .on('presence', { event: 'sync' }, () => {
           if (!mounted) return;
 
@@ -69,10 +69,35 @@ export default function Chat({ onUsersUpdate, username }) {
 
           onUsersUpdate(users, users.length);
         })
+        .on('presence', { event: 'join' }, ({ newPresences }) => {
+          if (!mounted) return;
+          const state = presenceChannel.presenceState();
+          const users = [];
+          Object.values(state).forEach(presences => {
+            presences.forEach(p => {
+              if (p.username && !users.includes(p.username)) {
+                users.push(p.username);
+              }
+            });
+          });
+          onUsersUpdate(users, users.length);
+        })
+        .on('presence', { event: 'leave' }, () => {
+          if (!mounted) return;
+          const state = presenceChannel.presenceState();
+          const users = [];
+          Object.values(state).forEach(presences => {
+            presences.forEach(p => {
+              if (p.username && !users.includes(p.username)) {
+                users.push(p.username);
+              }
+            });
+          });
+          onUsersUpdate(users, users.length);
+        })
         .subscribe(async (status) => {
           if (!mounted) return;
 
-          // ✅ conexión inicial
           if (status === 'SUBSCRIBED') {
             await presenceChannel.track({
               username: usernameRef.current,
@@ -80,21 +105,20 @@ export default function Chat({ onUsersUpdate, username }) {
             });
           }
 
-          // 🔥 RECONEXIÓN (CLAVE)
           if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-            try {
-              await presenceChannel.untrack();
-
-              await presenceChannel.track({
-                username: usernameRef.current,
-                online_at: new Date().toISOString(),
-              });
-            } catch (err) {
-              console.error('Error re-track:', err);
-            }
+            setTimeout(async () => {
+              if (!mounted) return;
+              try {
+                await presenceChannel.track({
+                  username: usernameRef.current,
+                  online_at: new Date().toISOString(),
+                });
+              } catch (err) {
+                console.error('Error re-track:', err);
+              }
+            }, 2000); // espera 2 segundos antes de reintentar
           }
         });
-
       channelsRef.current = [msgChannel, presenceChannel];
     }
 
