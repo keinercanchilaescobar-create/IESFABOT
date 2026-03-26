@@ -11,6 +11,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [username, setUsername]       = useState(null);
   const [loading, setLoading]         = useState(true);
+  const [connected, setConnected]     = useState(false); // ✅ nuevo estado
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -38,10 +39,14 @@ export default function App() {
     setUsername(null);
   };
 
-  // ✅ Ahora guarda tanto usuarios como conteo
   const handleUsersUpdate = useCallback((u, c) => {
     setUsers(u);
     setOnlineCount(c);
+  }, []);
+
+  // ✅ recibe el estado de conexión desde Chat
+  const handleConnected = useCallback((status) => {
+    setConnected(status);
   }, []);
 
   if (loading) {
@@ -67,6 +72,7 @@ export default function App() {
         onlineCount={onlineCount}
         onLogout={handleLogout}
         username={username}
+        connected={connected} // ✅ se pasa al Navbar
       />
       <div className="main-layout">
         <Sidebar
@@ -77,6 +83,7 @@ export default function App() {
         <Chat
           username={username}
           onUsersUpdate={handleUsersUpdate}
+          onConnected={handleConnected} // ✅ se pasa al Chat
         />
       </div>
     </div>

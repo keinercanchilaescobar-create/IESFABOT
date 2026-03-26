@@ -3,16 +3,17 @@ import { supabase } from '../supabase.js';
 import Message from './Message.jsx';
 import Input   from './Input.jsx';
 
-export default function Chat({ onUsersUpdate, username }) {
+export default function Chat({ onUsersUpdate, onConnected, username }) {
   const [messages,  setMessages]  = useState([]);
   const [connected, setConnected] = useState(false);
 
-  const usernameRef     = useRef(username);
-  const bottomRef       = useRef(null);
-  const channelsRef     = useRef([]);
-  const isAtBottom      = useRef(true);
-  const messagesAreaRef = useRef(null);
+  const usernameRef      = useRef(username);
+  const bottomRef        = useRef(null);
+  const channelsRef      = useRef([]);
+  const isAtBottom       = useRef(true);
+  const messagesAreaRef  = useRef(null);
   const onUsersUpdateRef = useRef(onUsersUpdate);
+  const onConnectedRef   = useRef(onConnected); // ✅ nueva ref
 
   useEffect(() => {
     usernameRef.current = username;
@@ -23,10 +24,13 @@ export default function Chat({ onUsersUpdate, username }) {
   }, [onUsersUpdate]);
 
   useEffect(() => {
+    onConnectedRef.current = onConnected; // ✅ actualiza la ref
+  }, [onConnected]);
+
+  useEffect(() => {
     let mounted = true;
 
     async function init() {
-      // 📥 Cargar historial
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -36,7 +40,6 @@ export default function Chat({ onUsersUpdate, username }) {
       if (error) console.error('Error cargando mensajes:', error);
       if (mounted) setMessages(data || []);
 
-      // 💬 Canal de mensajes
       const msgChannel = supabase
         .channel('chat-messages')
         .on(
@@ -51,7 +54,10 @@ export default function Chat({ onUsersUpdate, username }) {
           }
         )
         .subscribe((status) => {
-          if (mounted) setConnected(status === 'SUBSCRIBED');
+          if (!mounted) return;
+          const isConnected = status === 'SUBSCRIBED';
+          setConnected(isConnected);
+          onConnectedRef.current?.(isConnected); // ✅ notifica a App.jsx
         });
 
       const presenceChannel = supabase.channel('chat-presence');
@@ -108,16 +114,14 @@ export default function Chat({ onUsersUpdate, username }) {
       mounted = false;
       channelsRef.current.forEach(ch => ch.unsubscribe());
     };
-  }, []); // ✅ array vacío — el efecto corre solo una vez
+  }, []);
 
-  // 🔽 Auto-scroll
   useEffect(() => {
     if (isAtBottom.current) {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
-  // 🔽 Detectar scroll manual
   useEffect(() => {
     const area = messagesAreaRef.current;
     if (!area) return;
@@ -146,7 +150,6 @@ export default function Chat({ onUsersUpdate, username }) {
     if (error) console.error('Error enviando mensaje:', error);
   };
 
-  // 🗑️ Solo limpia TU pantalla — no toca Supabase ni afecta a otros usuarios
   const clearHistory = () => {
     setMessages([]);
   };
