@@ -85,16 +85,18 @@ export default function Message({ msg, own }) {
               title="Clic para ver en pantalla completa"
             />
             <button
-  className="msg-download-btn"
-  title={`Descargar ${msg.file_name}`}
-  onClick={(e) => {
-    e.stopPropagation();  // ← evita que el click se propague al img
-    alert('click recibido');
-    downloadFile(msg.file_url, msg.file_name);
-  }}
->
-  ⬇️ Descargar
-</button>
+              className="msg-download-btn"
+              title={`Descargar ${msg.file_name}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                alert('click recibido');
+                downloadFile(msg.file_url, msg.file_name);
+              }}
+            >
+              ⬇️ Descargar
+            </button>
+          </div>
+        )}
 
         {/* ── Archivo genérico (PDF, ZIP, etc.) ── */}
         {msg.file_url && !isImage && (
