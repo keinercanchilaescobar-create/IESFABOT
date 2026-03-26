@@ -40,14 +40,24 @@ export default function Message({ msg, own }) {
             {renderTextWithLinks(msg.text)}
           </p>
         )}
-
-        {msg.file_url && isImage && (
-          <img
-            src={msg.file_url}
-            alt={msg.file_name}
-            className="msg-image"
-            onClick={() => window.open(msg.file_url, '_blank')}
-          />
+{msg.file_url && isImage && (
+          <div className="msg-image-wrapper">
+            <img
+              src={msg.file_url}
+              alt={msg.file_name}
+              className="msg-image"
+              onClick={() => window.open(msg.file_url, '_blank')}
+            />
+            
+              href={msg.file_url}
+              download={msg.file_name}
+              target="_blank"
+              rel="noreferrer"
+              className="msg-download-btn"
+            <a>
+              ⬇️ Descargar
+            </a>
+          </div>
         )}
 
         {msg.file_url && !isImage && (
