@@ -349,9 +349,8 @@ body {
 =========================================================*/
 .message-bubble {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
-
 .message-bubble::after {
   content: "";
   position: absolute;
@@ -508,4 +507,10 @@ body {
   0% { box-shadow: 0 0 4px #00ff88; }
   50% { box-shadow: 0 0 12px #00ff88; }
   100% { box-shadow: 0 0 4px #00ff88; }
+}
+.msg-text a {
+  pointer-events: all;
+  cursor: pointer;
+  position: relative;
+  z-index: 10;
 }
