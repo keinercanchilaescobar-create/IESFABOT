@@ -146,20 +146,9 @@ export default function Chat({ onUsersUpdate, username }) {
     if (error) console.error('Error enviando mensaje:', error);
   };
 
-  // 🗑️ Borrar historial
-  const clearHistory = async () => {
-    if (!window.confirm('¿Seguro que quieres borrar todo el historial? Esta acción no se puede deshacer.')) return;
-
-    const { error } = await supabase
-      .from('messages')
-      .delete()
-      .gte('created_at', '2000-01-01');
-
-    if (error) {
-      console.error('Error borrando historial:', error);
-    } else {
-      setMessages([]);
-    }
+  // 🗑️ Solo limpia TU pantalla — no toca Supabase ni afecta a otros usuarios
+  const clearHistory = () => {
+    setMessages([]);
   };
 
   return (
@@ -178,7 +167,7 @@ export default function Chat({ onUsersUpdate, username }) {
         </span>
 
         <button className="clear-btn" onClick={clearHistory}>
-          🗑️ Borrar historial
+          🗑️ Limpiar mi chat
         </button>
       </div>
 
