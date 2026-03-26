@@ -514,3 +514,68 @@ body {
   position: relative;
   z-index: 10;
 }
+/* ── Añadir al final de styles.css ── */
+
+.msg-image-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.msg-image {
+  max-width: 100%;
+  max-height: 260px;
+  border-radius: 8px;
+  object-fit: cover;
+  cursor: zoom-in;
+  transition: opacity .2s;
+}
+
+.msg-image:hover { opacity: .9; }
+
+/* Botón de descarga — reemplaza al <a> roto */
+.msg-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-base, #080b10);
+  border: 1px solid var(--border-bright, #2a3f55);
+  border-radius: 6px;
+  color: var(--accent, #00d4ff);
+  font-size: 12px;
+  font-family: var(--font-mono, monospace);
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+  width: fit-content;
+}
+
+.msg-download-btn:hover {
+  background: var(--bg-hover, #1a2233);
+  border-color: var(--accent, #00d4ff);
+}
+
+/* Botón para archivos genéricos */
+.msg-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: var(--bg-base, #080b10);
+  border: 1px solid var(--border-bright, #2a3f55);
+  border-radius: 6px;
+  color: var(--accent, #00d4ff);
+  font-size: 12px;
+  font-family: var(--font-mono, monospace);
+  cursor: pointer;
+  transition: background .2s;
+  word-break: break-all;
+  text-align: left;
+}
+
+.msg-file:hover {
+  background: var(--bg-hover, #1a2233);
+  border-color: var(--accent, #00d4ff);
+}

@@ -4,7 +4,6 @@ import React from 'react';
 function renderTextWithLinks(text) {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = text.split(urlRegex);
-
   return parts.map((part, i) => {
     if (/^https?:\/\/[^\s]+$/.test(part)) {
       return (
@@ -13,7 +12,7 @@ function renderTextWithLinks(text) {
           href={part}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: '#00ff88', textDecoration: 'underline', wordBreak: 'break-all' }}
+          style={{ color: '#00d4ff', textDecoration: 'underline', wordBreak: 'break-all' }}
         >
           {part}
         </a>
@@ -21,6 +20,22 @@ function renderTextWithLinks(text) {
     }
     return part;
   });
+}
+
+// Descarga forzada via fetch+blob para evitar bloqueo CORS de Cloudinary
+async function forceDownload(url, filename) {
+  try {
+    const res  = await fetch(url);
+    const blob = await res.blob();
+    const link = document.createElement('a');
+    link.href     = URL.createObjectURL(blob);
+    link.download = filename || 'archivo';
+    link.click();
+    URL.revokeObjectURL(link.href);
+  } catch {
+    // Si fetch falla (ej: PDF), abrir en pestaña nueva como fallback
+    window.open(url, '_blank');
+  }
 }
 
 export default function Message({ msg, own }) {
@@ -33,6 +48,7 @@ export default function Message({ msg, own }) {
   return (
     <div className={`message-wrapper ${own ? 'own' : 'other'}`}>
       <div className="message-bubble">
+
         {!own && <div className="msg-username">{msg.username}</div>}
 
         {msg.text && (
@@ -40,35 +56,35 @@ export default function Message({ msg, own }) {
             {renderTextWithLinks(msg.text)}
           </p>
         )}
-{msg.file_url && isImage && (
+
+        {/* ── Imagen ── */}
+        {msg.file_url && isImage && (
           <div className="msg-image-wrapper">
             <img
               src={msg.file_url}
               alt={msg.file_name}
               className="msg-image"
               onClick={() => window.open(msg.file_url, '_blank')}
+              title="Clic para ver en pantalla completa"
             />
-            
-              href={msg.file_url}
-              download={msg.file_name}
-              target="_blank"
-              rel="noreferrer"
+            <button
               className="msg-download-btn"
-            <a>
+              onClick={() => forceDownload(msg.file_url, msg.file_name)}
+              title="Descargar imagen"
+            >
               ⬇️ Descargar
-            </a>
+            </button>
           </div>
         )}
 
+        {/* ── Archivo genérico ── */}
         {msg.file_url && !isImage && (
-          <a
-            href={msg.file_url}
-            target="_blank"
-            rel="noreferrer"
+          <button
             className="msg-file"
+            onClick={() => forceDownload(msg.file_url, msg.file_name)}
           >
             📎 {msg.file_name}
-          </a>
+          </button>
         )}
 
         <span className="msg-time">{time}</span>
