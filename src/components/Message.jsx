@@ -1,5 +1,28 @@
 import React from 'react';
 
+// Detecta URLs en el texto y las convierte en enlaces clicables
+function renderTextWithLinks(text) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, i) => {
+    if (urlRegex.test(part)) {
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#00ff88', textDecoration: 'underline', wordBreak: 'break-all' }}
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
 export default function Message({ msg, own }) {
   const time = new Date(msg.created_at).toLocaleTimeString('es-ES', {
     hour: '2-digit',
@@ -12,7 +35,11 @@ export default function Message({ msg, own }) {
       <div className="message-bubble">
         {!own && <div className="msg-username">{msg.username}</div>}
 
-        {msg.text && <p className="msg-text">{msg.text}</p>}
+        {msg.text && (
+          <p className="msg-text">
+            {renderTextWithLinks(msg.text)}
+          </p>
+        )}
 
         {msg.file_url && isImage && (
           <img
