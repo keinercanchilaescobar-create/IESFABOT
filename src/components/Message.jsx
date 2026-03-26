@@ -22,19 +22,20 @@ function renderTextWithLinks(text) {
   });
 }
 
-// Descarga forzada via fetch+blob para evitar bloqueo CORS de Cloudinary
-async function forceDownload(url, filename) {
+/**
+ * Convierte una URL de Cloudinary en URL de descarga forzada
+ * usando el parámetro fl_attachment que Cloudinary soporta nativamente.
+ *
+ * Original:  .../upload/abc123.jpg
+ * Descarga:  .../upload/fl_attachment:nombre/abc123.jpg
+ */
+function toDownloadUrl(url, filename) {
+  if (!url) return url;
   try {
-    const res  = await fetch(url);
-    const blob = await res.blob();
-    const link = document.createElement('a');
-    link.href     = URL.createObjectURL(blob);
-    link.download = filename || 'archivo';
-    link.click();
-    URL.revokeObjectURL(link.href);
+    const encoded = (filename || 'archivo').replace(/[^a-zA-Z0-9._-]/g, '_');
+    return url.replace('/upload/', `/upload/fl_attachment:${encoded}/`);
   } catch {
-    // Si fetch falla (ej: PDF), abrir en pestaña nueva como fallback
-    window.open(url, '_blank');
+    return url;
   }
 }
 
@@ -43,7 +44,9 @@ export default function Message({ msg, own }) {
     hour: '2-digit',
     minute: '2-digit',
   });
-  const isImage = msg.file_type?.startsWith('image/');
+
+  const isImage    = msg.file_type?.startsWith('image/');
+  const downloadUrl = toDownloadUrl(msg.file_url, msg.file_name);
 
   return (
     <div className={`message-wrapper ${own ? 'own' : 'other'}`}>
@@ -67,24 +70,25 @@ export default function Message({ msg, own }) {
               onClick={() => window.open(msg.file_url, '_blank')}
               title="Clic para ver en pantalla completa"
             />
-            <button
+            <a
+              href={downloadUrl}
               className="msg-download-btn"
-              onClick={() => forceDownload(msg.file_url, msg.file_name)}
-              title="Descargar imagen"
+              title={`Descargar ${msg.file_name}`}
             >
               ⬇️ Descargar
-            </button>
+            </a>
           </div>
         )}
 
-        {/* ── Archivo genérico ── */}
+        {/* ── Archivo genérico (PDF, ZIP, etc.) ── */}
         {msg.file_url && !isImage && (
-          <button
+          <a
+            href={downloadUrl}
             className="msg-file"
-            onClick={() => forceDownload(msg.file_url, msg.file_name)}
+            title={`Descargar ${msg.file_name}`}
           >
             📎 {msg.file_name}
-          </button>
+          </a>
         )}
 
         <span className="msg-time">{time}</span>
