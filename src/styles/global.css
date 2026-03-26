@@ -307,6 +307,7 @@ body {
   border: none;
   cursor: pointer;
 }
+
 /* =========================================================
    FONDO TECNOLÓGICO SUTIL
 =========================================================*/
@@ -323,7 +324,7 @@ body {
     linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
   background-size: 40px 40px;
-  pointer-events: none;
+  pointer-events: none; /* ← no bloquea clicks */
 }
 
 /* =========================================================
@@ -346,11 +347,13 @@ body {
 
 /* =========================================================
    EFECTO HOLOGRÁFICO EN BURBUJAS
+   ⚠️ FIX: pointer-events: none para no bloquear clicks
 =========================================================*/
 .message-bubble {
   position: relative;
   overflow: visible;
 }
+
 .message-bubble::after {
   content: "";
   position: absolute;
@@ -363,6 +366,7 @@ body {
   );
   opacity: 0;
   transition: opacity 0.3s;
+  pointer-events: none; /* ← ESTE ERA EL PROBLEMA */
 }
 
 .message-bubble:hover::after {
@@ -411,6 +415,7 @@ body {
     transparent
   );
   transform: translateX(-100%);
+  pointer-events: none; /* ← no bloquea clicks */
 }
 
 .send-btn:hover::before {
@@ -460,6 +465,7 @@ body {
     box-shadow: 0 0 0 rgba(0,212,255,0);
   }
 }
+
 /* =============================
    NAVBAR LADO DERECHO
 =============================*/
@@ -480,14 +486,12 @@ body {
   color: #8fbcd4;
 }
 
-/* bombillo */
 .status-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
 }
 
-/* online */
 .status-dot.online {
   background: #00ff88;
   box-shadow:
@@ -496,31 +500,37 @@ body {
   animation: pulseOnline 2s infinite;
 }
 
-/* offline */
 .status-dot.offline {
   background: #ff4c4c;
   box-shadow: 0 0 6px #ff4c4c;
 }
 
-/* animación */
 @keyframes pulseOnline {
   0% { box-shadow: 0 0 4px #00ff88; }
   50% { box-shadow: 0 0 12px #00ff88; }
   100% { box-shadow: 0 0 4px #00ff88; }
 }
+
+/* =========================================================
+   LINKS EN MENSAJES
+=========================================================*/
 .msg-text a {
   pointer-events: all;
   cursor: pointer;
   position: relative;
   z-index: 10;
 }
-/* ── Añadir al final de styles.css ── */
 
+/* =========================================================
+   IMÁGENES Y ARCHIVOS EN MENSAJES
+=========================================================*/
 .msg-image-wrapper {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-top: 6px;
+  position: relative;
+  z-index: 1; /* ← asegura que esté por encima del ::after */
 }
 
 .msg-image {
@@ -534,7 +544,6 @@ body {
 
 .msg-image:hover { opacity: .9; }
 
-/* Botón de descarga — reemplaza al <a> roto */
 .msg-download-btn {
   display: inline-flex;
   align-items: center;
@@ -549,6 +558,8 @@ body {
   cursor: pointer;
   transition: background .2s, border-color .2s;
   width: fit-content;
+  position: relative;
+  z-index: 2; /* ← por encima del ::after del bubble */
 }
 
 .msg-download-btn:hover {
@@ -556,7 +567,6 @@ body {
   border-color: var(--accent, #00d4ff);
 }
 
-/* Botón para archivos genéricos */
 .msg-file {
   display: inline-flex;
   align-items: center;
@@ -573,6 +583,8 @@ body {
   transition: background .2s;
   word-break: break-all;
   text-align: left;
+  position: relative;
+  z-index: 2; /* ← por encima del ::after del bubble */
 }
 
 .msg-file:hover {

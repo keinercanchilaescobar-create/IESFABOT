@@ -89,7 +89,6 @@ export default function Message({ msg, own }) {
               title={`Descargar ${msg.file_name}`}
               onClick={(e) => {
                 e.stopPropagation();
-                alert('click recibido');
                 downloadFile(msg.file_url, msg.file_name);
               }}
             >
