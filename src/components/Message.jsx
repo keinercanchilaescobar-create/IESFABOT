@@ -6,7 +6,7 @@ function renderTextWithLinks(text) {
   const parts = text.split(urlRegex);
 
   return parts.map((part, i) => {
-    if (urlRegex.test(part)) {
+    if (/^https?:\/\/[^\s]+$/.test(part)) {
       return (
         <a
           key={i}
