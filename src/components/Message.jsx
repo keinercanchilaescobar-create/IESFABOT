@@ -23,19 +23,31 @@ function renderTextWithLinks(text) {
 }
 
 /**
- * Convierte una URL de Cloudinary en URL de descarga forzada
- * usando el parámetro fl_attachment que Cloudinary soporta nativamente.
- *
- * Original:  .../upload/abc123.jpg
- * Descarga:  .../upload/fl_attachment:nombre/abc123.jpg
+ * Descarga un archivo usando fetch + blob para forzar la descarga
+ * incluso cuando la URL es de un dominio externo (Cloudinary, S3, etc.)
+ * El atributo `download` en un <a> solo funciona en el mismo origen,
+ * por eso este enfoque es necesario.
  */
-function toDownloadUrl(url, filename) {
-  if (!url) return url;
+async function downloadFile(url, filename) {
   try {
-    const encoded = (filename || 'archivo').replace(/[^a-zA-Z0-9._-]/g, '_');
-    return url.replace('/upload/', `/upload/fl_attachment:${encoded}/`);
-  } catch {
-    return url;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Error al obtener el archivo');
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename || 'archivo';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Libera la memoria del blob URL
+    URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.error('Error al descargar:', err);
+    // Fallback: abrir en nueva pestaña si fetch falla (ej. CORS)
+    window.open(url, '_blank');
   }
 }
 
@@ -45,8 +57,7 @@ export default function Message({ msg, own }) {
     minute: '2-digit',
   });
 
-  const isImage    = msg.file_type?.startsWith('image/');
-  const downloadUrl = toDownloadUrl(msg.file_url, msg.file_name);
+  const isImage = msg.file_type?.startsWith('image/');
 
   return (
     <div className={`message-wrapper ${own ? 'own' : 'other'}`}>
@@ -70,25 +81,25 @@ export default function Message({ msg, own }) {
               onClick={() => window.open(msg.file_url, '_blank')}
               title="Clic para ver en pantalla completa"
             />
-            <a
-              href={downloadUrl}
+            <button
               className="msg-download-btn"
               title={`Descargar ${msg.file_name}`}
+              onClick={() => downloadFile(msg.file_url, msg.file_name)}
             >
               ⬇️ Descargar
-            </a>
+            </button>
           </div>
         )}
 
         {/* ── Archivo genérico (PDF, ZIP, etc.) ── */}
         {msg.file_url && !isImage && (
-          <a
-            href={downloadUrl}
+          <button
             className="msg-file"
             title={`Descargar ${msg.file_name}`}
+            onClick={() => downloadFile(msg.file_url, msg.file_name)}
           >
             📎 {msg.file_name}
-          </a>
+          </button>
         )}
 
         <span className="msg-time">{time}</span>
