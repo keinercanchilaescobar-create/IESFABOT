@@ -29,11 +29,15 @@ function renderTextWithLinks(text) {
  * por eso este enfoque es necesario.
  */
 async function downloadFile(url, filename) {
+  console.log('👉 downloadFile llamado con:', url, filename);
   try {
     const response = await fetch(url);
+    console.log('📦 response status:', response.status, response.ok);
     if (!response.ok) throw new Error('Error al obtener el archivo');
     const blob = await response.blob();
+    console.log('🧩 blob size:', blob.size, '| type:', blob.type);
     const blobUrl = URL.createObjectURL(blob);
+    console.log('🔗 blobUrl generado:', blobUrl);
 
     const link = document.createElement('a');
     link.href = blobUrl;
@@ -42,11 +46,10 @@ async function downloadFile(url, filename) {
     link.click();
     document.body.removeChild(link);
 
-    // Libera la memoria del blob URL
     URL.revokeObjectURL(blobUrl);
+    console.log('✅ Descarga iniciada correctamente');
   } catch (err) {
-    console.error('Error al descargar:', err);
-    // Fallback: abrir en nueva pestaña si fetch falla (ej. CORS)
+    console.error('❌ Error al descargar:', err);
     window.open(url, '_blank');
   }
 }
